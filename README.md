@@ -1,5 +1,5 @@
 # Tic Tac Toe
-Just a small project.
+Just a small Unity project.
 
 - Done: PvP mode
 - Pending: Menu and vs cpu mode
