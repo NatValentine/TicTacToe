@@ -14,27 +14,20 @@ public class GameController : MonoBehaviour
     private int[] logicSlots;
     private GameObject[] tokensInPlay;
     public Text gameOverTxt;
+    public Text currentTurnDisplay;
     private bool gameOver = false;
 
-    // Start is called before the first frame update
     void Start()
     {
         logicSlots = new int[9];
         
-        // Initialize everything for a new game.
         InitializeBoard();
-    }
-
-    // Update is called once per frame
-    private void Update()
-    {
-        
     }
 
     GameObject newToken;
     public void MakeAMove(int slot)
     {
-        // Each slot sends a number from 1 to 9. Since the array starts at 0 I decrease it by 1.
+        // Each slot sends a number from 1 to 9. Since the array starts at 0, decrease it by 1.
         slot--;
 
         // Depending on which player's turn it is, I instantiate one token or the other.
@@ -54,19 +47,29 @@ public class GameController : MonoBehaviour
         // Had a problem that when instantiating as child of the board it would mess up the scaling of the token.
         newToken.transform.localScale = new Vector3(1f, 1f, 1f);
 
-        // Since players shouldn't be able to place multiple tokens in the same slot, I deactivate it.
+        // Since players shouldn't be able to place multiple tokens in the same slot, deactivate it.
         slots[slot].SetActive(false);
 
         // Check if game is still on
-        CheckGameOver();
-        
-        // End of turn, change current player.
-        NextTurn();
+        if (!CheckGameOver()) {
+            NextTurn();
+        } else {
+            currentTurnDisplay.text = "";
+        }
     }
 
     void NextTurn()
     {
         isPlayer1Turn = !isPlayer1Turn;
+        updateCurrentPlayerText();
+    }
+
+    void updateCurrentPlayerText() {
+        if (isPlayer1Turn) {
+            currentTurnDisplay.text = "X moves...";
+        } else {
+            currentTurnDisplay.text = "O moves...";
+        }
     }
 
     void KillAllTokens()
@@ -78,10 +81,8 @@ public class GameController : MonoBehaviour
 
     public void InitializeBoard()
     {
-        // Set gameOver as false
         gameOver = false;
 
-        // Clear slots
         KillAllTokens();
 
         for (int i = 0; i < slots.Length; i++)
@@ -90,14 +91,14 @@ public class GameController : MonoBehaviour
             logicSlots[i] = 0;
         }
                 
-        // Reset game over text
         gameOverTxt.text = "";
 
         // Set player 1 as the current player;
         isPlayer1Turn = true;
+        currentTurnDisplay.text = "X moves...";
     }
 
-    void CheckGameOver()
+    bool CheckGameOver()
     {
         /* 8 win scenarios + tie
          * Logic slots as follows:
@@ -110,48 +111,58 @@ public class GameController : MonoBehaviour
         if((logicSlots[0] != 0) && (logicSlots[0] == logicSlots[1]) && (logicSlots[1] == logicSlots[2]))
         {
             CurrentPlayerWins();
+            return true;
         }
 
         if ((logicSlots[3] != 0) && (logicSlots[3] == logicSlots[4]) && (logicSlots[4] == logicSlots[5]))
         {
             CurrentPlayerWins();
+            return true;
         }
 
         if ((logicSlots[6] != 0) && (logicSlots[6] == logicSlots[7]) && (logicSlots[7] == logicSlots[8]))
         {
             CurrentPlayerWins();
+            return true;
         }
 
         if ((logicSlots[0] != 0) && (logicSlots[0] == logicSlots[3]) && (logicSlots[3] == logicSlots[6]))
         {
             CurrentPlayerWins();
+            return true;
         }
 
         if ((logicSlots[1] != 0) && (logicSlots[1] == logicSlots[4]) && (logicSlots[4] == logicSlots[7]))
         {
             CurrentPlayerWins();
+            return true;
         }
 
         if ((logicSlots[2] != 0) && (logicSlots[2] == logicSlots[5]) && (logicSlots[5] == logicSlots[8]))
         {
             CurrentPlayerWins();
+            return true;
         }
 
         if ((logicSlots[0] != 0) && (logicSlots[0] == logicSlots[4]) && (logicSlots[4] == logicSlots[8]))
         {
             CurrentPlayerWins();
+            return true;
         }
 
         if ((logicSlots[2] != 0) && (logicSlots[2] == logicSlots[4]) && (logicSlots[4] == logicSlots[6]))
         {
             CurrentPlayerWins();
+            return true;
         }
 
         if(logicSlots.All(s => s > 0) && gameOver == false)
         {
             //no zeroes left means there's no more room and therefore a tie
             GameOver("It's a tie!");
+            return true;
         }
+        return false;
     }
 
     void CurrentPlayerWins()
@@ -167,6 +178,8 @@ public class GameController : MonoBehaviour
         {
             GameOver("O WINS!");
         }
+
+        GetComponent<AudioSource>().Play();
     }
 
     void GameOver(string s)
